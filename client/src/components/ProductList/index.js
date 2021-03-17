@@ -24,11 +24,11 @@ function ProductList() {
       });
     } else if (!loading) {
       // since we're offline, get all of the data from the `products` store
-      idbPromise('products', 'get').then((products) => {
+      idbPromise('products', 'get').then((indexedProducts) => {
         // use retrieved data to set global state for offline browsing
         dispatch({
           type: UPDATE_PRODUCTS,
-          products: products,
+          products: indexedProducts,
         });
       });
     }
