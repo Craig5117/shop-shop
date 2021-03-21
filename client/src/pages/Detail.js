@@ -1,24 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery } from '@apollo/react-hooks';
-import { useStoreContext } from '../utils/GlobalState';
-import {
-  REMOVE_FROM_CART,
-  UPDATE_CART_QUANTITY,
-  ADD_TO_CART,
-  UPDATE_PRODUCTS,
-} from '../utils/actions';
+// replaced useStoreContext with useSelector/useDispatch
+// action calls replaced by type property on slice reducers
+import { useSelector, useDispatch } from 'react-redux'
 import { QUERY_PRODUCTS } from '../utils/queries';
 import spinner from '../assets/spinner.gif';
 import Cart from '../components/Cart';
 import { idbPromise } from '../utils/helpers';
 
 function Detail() {
-  const [state, dispatch] = useStoreContext();
+  const dispatch = useDispatch();
   const { id } = useParams();
   const [currentProduct, setCurrentProduct] = useState({});
   const { loading, data } = useQuery(QUERY_PRODUCTS);
-  const { products, cart } = state;
+  const products = useSelector(state => state.productsList);
+  const cartList = useSelector(state => state.cart.cartList)
 
   useEffect(() => {
     // already in global store?
@@ -28,59 +25,61 @@ function Detail() {
     // retrieved from server?
     else if (data) {
       dispatch({
-        type: UPDATE_PRODUCTS,
-        products: data.products,
+        type: 'products/UPDATE_PRODUCTS',
+        payload: data.products,
       });
 
       data.products.forEach((product) => {
-        idbPromise('products', 'put', product);
+        idbPromise('productsList', 'put', product);
       });
     }
     // if no to previous, get cache from idb
     else if (!loading) {
-      idbPromise('products', 'get').then((indexedProducts) => {
+      idbPromise('productsList', 'get').then((indexedProducts) => {
         dispatch({
-          type: UPDATE_PRODUCTS,
-          products: indexedProducts,
+          type:'products/UPDATE_PRODUCTS',
+          payload: indexedProducts,
         });
       });
     }
   }, [products, data, loading, dispatch, id]);
 
   const addToCart = () => {
-    const itemInCart = cart.find((cartItem) => cartItem._id === id);
+    const itemInCart = cartList.find((cartItem) => cartItem._id === id);
     if (itemInCart) {
       dispatch({
-        type: UPDATE_CART_QUANTITY,
-        _id: id,
-        purchaseQuantity: parseInt(itemInCart.purchaseQuantity) + 1,
+        type: 'cart/UPDATE_CART_QUANTITY',
+        payload: {
+          _id: id,
+          purchaseQuantity: parseInt(itemInCart.purchaseQuantity) + 1
+        }
       });
       // if we're updating quantity, use existing item data
       // and increment purchaseQuantity value by one
-      idbPromise('cart', 'put', {
+      idbPromise('cartList', 'put', {
         ...itemInCart,
         purchaseQuantity: parseInt(itemInCart.purchaseQuantity) + 1,
       });
     } else {
       dispatch({
-        type: ADD_TO_CART,
-        product: { ...currentProduct, purchaseQuantity: 1 },
+        type: 'cart/ADD_TO_CART',
+        payload: { ...currentProduct, purchaseQuantity: 1 },
       });
       // if product isn't in the cart yet,
       // add it to the current shopping cart in indexedDB
-      idbPromise('cart', 'put', { ...currentProduct, purchaseQuantity: 1 });
+      idbPromise('cartList', 'put', { ...currentProduct, purchaseQuantity: 1 });
     }
   };
 
   const removeFromCart = () => {
     dispatch({
-      type: REMOVE_FROM_CART,
-      _id: currentProduct._id,
+      type: 'cart/REMOVE_FROM_CART',
+      payload: currentProduct._id,
     });
 
     // upon removal from cart, delete the item from IndexedDB 
     // using the `currentProduct._id` to locate what to remove
-    idbPromise('cart', 'delete', { ...currentProduct });
+    idbPromise('cartList', 'delete', { ...currentProduct });
   };
 
   return (
@@ -97,7 +96,7 @@ function Detail() {
             <strong>Price:</strong>${currentProduct.price}{' '}
             <button onClick={addToCart}>Add to Cart</button>
             <button
-              disabled={!cart.find((p) => p._id === currentProduct._id)}
+              disabled={!cartList.find((p) => p._id === currentProduct._id)}
               onClick={removeFromCart}
             >
               Remove from Cart

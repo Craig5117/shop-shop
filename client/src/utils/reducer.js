@@ -6,7 +6,7 @@ import productsReducer from './features/products/productsSlice';
 // combines my various reducers into the single source of truth for the app
 
 const rootReducer = combineReducers({
-    products: productsReducer,
+    productsList: productsReducer,
     categories: categoriesReducer,
     cart: cartReducer 
 })

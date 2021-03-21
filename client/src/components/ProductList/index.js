@@ -1,51 +1,55 @@
 import React, { useEffect } from 'react';
 import { useQuery } from '@apollo/react-hooks';
-import { useStoreContext } from '../../utils/GlobalState';
-import { UPDATE_PRODUCTS } from '../../utils/actions';
+
+import { useSelector, useDispatch } from 'react-redux';
+
 import ProductItem from '../ProductItem';
 import { QUERY_PRODUCTS } from '../../utils/queries';
 import spinner from '../../assets/spinner.gif';
 import { idbPromise } from '../../utils/helpers';
 
 function ProductList() {
-  const [state, dispatch] = useStoreContext();
-  const { currentCategory } = state;
+  const dispatch = useDispatch();
+  // replaced the original state call with redux use selector hook
+  const { currentCategory } = useSelector(state => state.categories.currentCategory);
   const { loading, data } = useQuery(QUERY_PRODUCTS);
 
   useEffect(() => {
     if (data) {
       dispatch({
-        type: UPDATE_PRODUCTS,
-        products: data.products,
+        type: 'products/UPDATE_PRODUCTS',
+        payload: data.products,
       });
 
       data.products.forEach((product) => {
-        idbPromise('products', 'put', product);
+        idbPromise('productsList', 'put', product);
       });
     } else if (!loading) {
       // since we're offline, get all of the data from the `products` store
-      idbPromise('products', 'get').then((indexedProducts) => {
+      idbPromise('productsList', 'get').then((indexedProducts) => {
         // use retrieved data to set global state for offline browsing
         dispatch({
-          type: UPDATE_PRODUCTS,
-          products: indexedProducts,
+          type: 'products/UPDATE_PRODUCTS',
+          payload: indexedProducts,
         });
       });
     }
   }, [data, loading, dispatch]);
 
+  const products = useSelector(state => state.productsList);
+
   function filterProducts() {
     if (!currentCategory) {
-      return state.products;
+      return products;
     }
-    return state.products.filter(
+    return products.filter(
       (product) => product.category._id === currentCategory
     );
   }
   return (
     <div className="my-2">
       <h2>Our Products:</h2>
-      {state.products.length ? (
+      {products.length ? (
         <div className="flex-row">
           {filterProducts().map((product) => (
             <ProductItem

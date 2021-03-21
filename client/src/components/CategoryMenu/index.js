@@ -23,10 +23,10 @@ function CategoryMenu() {
         categories: categoryData.categories,
       });
       categoryData.categories.forEach((category) => {
-        idbPromise('categories', 'put', category);
+        idbPromise('categoriesList', 'put', category);
       });
     } else if (!loading) {
-      idbPromise('categories', 'get').then((categories) => {
+      idbPromise('categoriesList', 'get').then((categories) => {
         dispatch({
           type: UPDATE_CATEGORIES,
           categories: categories,

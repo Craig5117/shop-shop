@@ -1,5 +1,5 @@
 const initialState = {
-  categories: [],
+  categoriesList: [],
   currentCategory: '',
 };
 
@@ -7,7 +7,7 @@ export default function categoriesReducer(state = initialState, action) {
   switch (action.type) {
     case 'categories/UPDATE_CATEGORIES': {
       return {
-        categories: [...action.payload],
+        categoriesList: [...action.payload],
         ...state,
       };
     }
