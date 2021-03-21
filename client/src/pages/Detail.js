@@ -72,6 +72,7 @@ function Detail() {
   };
 
   const removeFromCart = () => {
+    console.log(currentProduct._id)
     dispatch({
       type: 'cart/REMOVE_FROM_CART',
       payload: currentProduct._id,

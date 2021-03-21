@@ -7,29 +7,29 @@ export default function cartReducer(state = initialState, action) {
   switch (action.type) {
     case 'cart/ADD_TO_CART': {
       return {
-        cartList: [...initialState.cartList, action.payload],
+        cartList: [...state.cartList, action.payload],
         cartOpen: true,
       };
     }
     case 'cart/ADD_MULTIPLE_TO_CART': {
       return {
-        cartList: [...initialState.cartList, ...action.payload],
         ...state,
+        cartList: [...state.cartList, ...action.payload],
       };
     }
     case 'cart/REMOVE_FROM_CART': {
+        let newCartList = state.cartList.filter((product) => {
+            return product._id !== action.payload;
+          });
       return {
-        cartList: initialState.cartList.filter(
-          (item) => item._id !== action.payload
-        ),
-        ...state,
+        cartList: newCartList,
+        cartOpen: newCartList.length > 0,
       };
     }
     case 'cart/UPDATE_CART_QUANTITY': {
       return {
-        ...state,
         cartOpen: true,
-        cartList: initialState.cartList.map((product) => {
+        cartList: state.cartList.map((product) => {
           if (action.payload._id === product._id) {
             product.purchaseQuantity = action.payload.purchaseQuantity;
           }
@@ -39,7 +39,6 @@ export default function cartReducer(state = initialState, action) {
     }
     case 'cart/CLEAR_CART': {
       return {
-        ...state,
         cartOpen: false,
         cartList: [],
       };

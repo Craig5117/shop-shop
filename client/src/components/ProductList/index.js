@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { useQuery } from '@apollo/react-hooks';
 
 import { useSelector, useDispatch } from 'react-redux';
-
+// replaced useStoreContext with useSelector/useDispatch
+// action calls replaced by type property on slice reducers
 import ProductItem from '../ProductItem';
 import { QUERY_PRODUCTS } from '../../utils/queries';
 import spinner from '../../assets/spinner.gif';
@@ -11,7 +12,7 @@ import { idbPromise } from '../../utils/helpers';
 function ProductList() {
   const dispatch = useDispatch();
   // replaced the original state call with redux use selector hook
-  const { currentCategory } = useSelector(state => state.categories.currentCategory);
+  const currentCategory = useSelector(state => state.categories.currentCategory);
   const { loading, data } = useQuery(QUERY_PRODUCTS);
 
   useEffect(() => {
@@ -27,6 +28,7 @@ function ProductList() {
     } else if (!loading) {
       // since we're offline, get all of the data from the `products` store
       idbPromise('productsList', 'get').then((indexedProducts) => {
+        console.log("idbProducts: ", indexedProducts)
         // use retrieved data to set global state for offline browsing
         dispatch({
           type: 'products/UPDATE_PRODUCTS',

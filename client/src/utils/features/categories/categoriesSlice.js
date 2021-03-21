@@ -6,9 +6,11 @@ const initialState = {
 export default function categoriesReducer(state = initialState, action) {
   switch (action.type) {
     case 'categories/UPDATE_CATEGORIES': {
+      // state spread has to go first !!!
       return {
-        categoriesList: [...action.payload],
         ...state,
+        categoriesList: [...action.payload],
+        
       };
     }
     case 'categories/UPDATE_CURRENT_CATEGORY': {
